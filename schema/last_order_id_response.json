@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LastOrderIdResponse",
+  "type": "object",
+  "required": [
+    "last_order_id"
+  ],
+  "properties": {
+    "last_order_id": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
+    }
+  }
+}
