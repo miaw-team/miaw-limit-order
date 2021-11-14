@@ -73,7 +73,7 @@ pub fn submit_order(
     };
     store_new_order(deps.storage, &mut new_order)?;
 
-    Ok(Response::new().add_attributes(vec![
+    Ok(Response::new().add_messages(messages).add_attributes(vec![
         attr("action", "submit_order"),
         attr("order_id", new_order.order_id.to_string()),
         attr("bidder_addr", info.sender.to_string()),
