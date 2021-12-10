@@ -1,1 +1,1 @@
-2a2ac09a5d19958e96cf7c8bb5a94c991939acd39676b134fc5c317e6d18e2ea  miaw_limit_order.wasm
+d3f4e8a0a03d8938d412b555cda239021d88c69b9969af557fe64aea7a297740  miaw_limit_order.wasm
