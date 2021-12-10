@@ -76,3 +76,6 @@ pub enum OrderBy {
     Asc,
     Desc,
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct MigrateMsg {}
