@@ -122,8 +122,20 @@ pub fn execute_order(deps: DepsMut, info: MessageInfo, order_id: u64) -> StdResu
     let config: Config = CONFIG.load(deps.storage)?;
     let order: OrderInfo = ORDERS.load(deps.storage, &order_id.to_be_bytes())?;
 
+    // deduct tax if native
+    let offer_asset = if order.offer_asset.is_native_token() {
+        let amount = order.offer_asset.deduct_tax(&deps.querier)?.amount;
+
+        Asset {
+            amount,
+            ..order.offer_asset.clone()
+        }
+    } else {
+        order.offer_asset.clone()
+    };
+
     let simul_res: SimulationResponse =
-        simulate(&deps.querier, order.pair_addr.clone(), &order.offer_asset)?;
+        simulate(&deps.querier, order.pair_addr.clone(), &offer_asset)?;
     if simul_res.return_amount < order.ask_asset.amount {
         return Err(StdError::generic_err("insufficient return amount"));
     }
@@ -131,14 +143,14 @@ pub fn execute_order(deps: DepsMut, info: MessageInfo, order_id: u64) -> StdResu
     let mut messages: Vec<CosmosMsg> = vec![];
 
     // create swap message
-    match order.offer_asset.clone().info {
+    match offer_asset.clone().info {
         AssetInfo::Token { contract_addr } => {
             messages.push(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr,
                 funds: vec![],
                 msg: to_binary(&Cw20ExecuteMsg::Send {
                     contract: order.pair_addr.to_string(),
-                    amount: order.offer_asset.amount,
+                    amount: offer_asset.amount,
                     msg: to_binary(&PairCw20HookMsg::Swap {
                         to: None,
                         belief_price: None,
@@ -152,10 +164,10 @@ pub fn execute_order(deps: DepsMut, info: MessageInfo, order_id: u64) -> StdResu
                 contract_addr: order.pair_addr.to_string(),
                 funds: vec![Coin {
                     denom,
-                    amount: order.offer_asset.amount,
+                    amount: offer_asset.amount,
                 }],
                 msg: to_binary(&PairExecuteMsg::Swap {
-                    offer_asset: order.offer_asset.clone(),
+                    offer_asset,
                     belief_price: None,
                     max_spread: None,
                     to: None,
